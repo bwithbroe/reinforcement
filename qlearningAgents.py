@@ -58,9 +58,10 @@ class QLearningAgent(ReinforcementAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        if not self.getLegalActions(state):
+        legalActions = self.getLegalActions(state)
+        if not legalActions:
             return 0.0
-        return max(self.getLegalActions(state))
+        return max(legalActions)
 
     def computeActionFromQValues(self, state):
         """
@@ -68,9 +69,10 @@ class QLearningAgent(ReinforcementAgent):
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
-        if self.isTerminal(state):
+        legalActions = self.getLegalActions(state)
+        if not legalActions:
             return None
-        return max(self.getLegalActions(state), key=lambda action: self.getQValue(state, action))
+        return max(legalActions, key=lambda action: self.getQValue(state, action))
 
     def getAction(self, state):
         """
@@ -100,7 +102,9 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-
+        sample = reward + self.gamma * self.computeValueFromQValues(nextState)
+        oldQValue = self.qValues[(state, action)] 
+        self.qValues[(state, action)] = (1 - self.alpha) oldQValue + self.alpha * sample
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
