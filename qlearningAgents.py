@@ -61,7 +61,7 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         if not legalActions:
             return 0.0
-        return max(legalActions)
+        return self.qValues[(state, self.computeActionFromQValues(state))]
 
     def computeActionFromQValues(self, state):
         """
@@ -107,7 +107,7 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        sample = reward + self.gamma * self.computeValueFromQValues(nextState)
+        sample = reward + self.discount * self.computeValueFromQValues(nextState)
         oldQValue = self.qValues[(state, action)] 
         self.qValues[(state, action)] = (1 - self.alpha) * oldQValue + self.alpha * sample
 
