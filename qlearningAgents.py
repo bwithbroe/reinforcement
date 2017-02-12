@@ -61,7 +61,7 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         if not legalActions:
             return 0.0
-        return self.qValues[(state, self.computeActionFromQValues(state))]
+        return self.getQValue(state, self.computeActionFromQValues(state))
 
     def computeActionFromQValues(self, state):
         """
