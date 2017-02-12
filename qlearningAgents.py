@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -85,13 +85,18 @@ class QLearningAgent(ReinforcementAgent):
           HINT: You might want to use util.flipCoin(prob)
           HINT: To pick randomly from a list, use random.choice(list)
         """
-        # Pick Action
         legalActions = self.getLegalActions(state)
-        action = None
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
-        return action
+        # return None if there are no actions to take; i.e. a terminal state
+        if len(legalActions) == 0:
+            return None
+
+        # return a random action with probability self.epsilon
+        if util.flipCoin(self.epsilon):
+            return random.choice(legalActions)
+
+        # return the best known action from this state
+        return computeActionFromValues(state)
 
     def update(self, state, action, nextState, reward):
         """
@@ -116,11 +121,11 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
     "Exactly the same as QLearningAgent, but with different default parameters"
 
-    
+
     """ For Q7: Change the default values of epsilon and alpha in the signature below
-    so that on smallGrid, the qlearning agent wins at least 80% of the time. 
+    so that on smallGrid, the qlearning agent wins at least 80% of the time.
     You can change gamma if you wish, but you don't need to. The "YOUR CODE HERE" is
-    to mark the function, but you don't actually need to write new code- just change 
+    to mark the function, but you don't actually need to write new code- just change
     the values.
     """
     "*** YOUR CODE HERE ***"
