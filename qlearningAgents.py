@@ -179,9 +179,7 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         feature_vals = self.featExtractor.getFeatures(state, action).itervalues()
-        weights = self.getWeights()
-
-        return sum([weight * feature for feature, weight in izip(feature_vals, weights)])
+        return sum(weight * self.weights[feature] for feature in feature_vals)
 
     def update(self, state, action, nextState, reward):
         """
