@@ -111,3 +111,74 @@ class SimpleExtractor(FeatureExtractor):
             features["closest-food"] = float(dist) / (walls.width * walls.height)
         features.divideAll(10.0)
         return features
+
+class AdvancedFeatureExtractor(FeatureExtractor):
+
+    def getFeatures(self, state, action):
+        """
+        Returns simple features for a basic reflex Pacman:
+        - whether food will be eaten
+        - how far away the next food is
+        - whether a ghost collision is imminent
+        - whether a ghost is one step away
+        """
+        # extract the grid of food and wall locations and get the ghost locations
+        food = state.getFood()
+        walls = state.getWalls()
+        ghosts = state.getGhostPositions()
+
+        features = util.Counter()
+
+        features["bias"] = 1.0
+
+        # compute the location of pacman after he takes the action
+        x, y = state.getPacmanPosition()
+        dx, dy = Actions.directionToVector(action)
+        next_x, next_y = int(x + dx), int(y + dy)
+
+        # count the number of ghosts 1-step away
+        features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
+
+        # if there is no danger of ghosts then add the food feature
+        if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
+            features["eats-food"] = 1.0
+
+        boardSize = (walls.width * walls.height)
+        dist = closestFood((next_x, next_y), food, walls)
+        if dist is not None:
+            # make the distance a number less than one otherwise the update
+            # will diverge wildly
+            features["closest-food"] = float(dist) / boardSize
+        features.divideAll(10.0)
+
+        # distance to nearest scared and non-scared ghosts
+        curPos = state.getPacmanPosition()
+        scaredGhostDist = None
+        scaredGhostIndex = None
+        nonScaredGhostDist = None
+        nonScaredGhostIndex = None
+        for ghostIndex in xrange(state.getNumAgents()):
+            if ghostIndex == 0:
+                continue
+            ghostState = state.getGhostState(ghostIndex)
+            if ghostState.scaredTimer > 0:
+                ghostPos = state.getGhostPosition(ghostIndex)
+                dist = util.manhattanDistance(curPos, ghostPos)
+                if scaredGhostDist is None or dist < scaredGhostDist:
+                    scaredGhostDist = dist
+                    scaredGhostIndex = scaredGhostIndex
+            else:
+                ghostPos = state.getGhostPosition(ghostIndex)
+                dist = util.manhattanDistance(curPos, ghostPos)
+                if nonScaredGhostDist is None or dist < nonScaredGhostDist:
+                    nonScaredGhostDist = dist
+                    nonScaredGhostIndex = nonScaredGhostIndex
+        if scaredGhostIndex:
+            features['scared-dist'] = boardSize / float(scaredGhostDist)
+        else:
+            features['scared-dist'] = 0.0
+        if nonScaredGhostIndex:
+            features['non-scared-dist'] = float(nonScaredGhostDist) / boardSize
+        else:
+            features['non-scared-dist'] = 0.0
+        return features
