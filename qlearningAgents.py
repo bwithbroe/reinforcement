@@ -15,6 +15,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
+from itertools import izip
 
 import random,util,math
 
@@ -178,8 +179,8 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        feature_vals = self.featExtractor.getFeatures(state, action).itervalues()
-        return sum(weight * self.weights[feature] for feature in feature_vals)
+        features = self.featExtractor.getFeatures(state, action).iteritems()
+        return sum(val * self.weights[feature] for feature, val in features)
 
     def update(self, state, action, nextState, reward):
         """
@@ -187,10 +188,10 @@ class ApproximateQAgent(PacmanQAgent):
         """
         oldQValue = self.getQValue(state, action)
         sample = reward + self.discount * self.computeValueFromQValues(nextState)
-		difference = sample - oldQValue
+        difference = sample - oldQValue
         feature_vals = self.featExtractor.getFeatures(state, action).itervalues()
-		for feature in feature_vals:
-			self.weights[feature] = self.weights[feature] + self.alpha * difference * oldQValue
+        for feature in feature_vals:
+            self.weights[feature] = self.weights[feature] + self.alpha * difference * oldQValue
 
     def final(self, state):
         "Called at the end of each game."
