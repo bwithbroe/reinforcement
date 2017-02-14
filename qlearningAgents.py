@@ -189,9 +189,9 @@ class ApproximateQAgent(PacmanQAgent):
         oldQValue = self.getQValue(state, action)
         sample = reward + self.discount * self.computeValueFromQValues(nextState)
         difference = sample - oldQValue
-        feature_vals = self.featExtractor.getFeatures(state, action).itervalues()
-        for feature in feature_vals:
-            self.weights[feature] = self.weights[feature] + self.alpha * difference * oldQValue
+        features = self.featExtractor.getFeatures(state, action)
+        for feature, val in features.iteritems():
+            self.weights[feature] = self.weights[feature] + self.alpha * difference * val
 
     def final(self, state):
         "Called at the end of each game."
