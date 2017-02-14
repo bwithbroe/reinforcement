@@ -128,8 +128,7 @@ class PacmanQAgent(QLearningAgent):
     to mark the function, but you don't actually need to write new code- just change
     the values.
     """
-    "*** YOUR CODE HERE ***"
-    def __init__(self, epsilon=0.0,gamma=0.8,alpha=0.0, numTraining=0, **args):
+    def __init__(self, epsilon=0.3,gamma=0.8,alpha=0.9, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
