@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -136,23 +136,16 @@ class AdvancedFeatureExtractor(FeatureExtractor):
         dx, dy = Actions.directionToVector(action)
         next_x, next_y = int(x + dx), int(y + dy)
 
-        # count the number of ghosts 1-step away
-        features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
-
-        # if there is no danger of ghosts then add the food feature
-        if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
-            features["eats-food"] = 1.0
-
         boardSize = (walls.width * walls.height)
         dist = closestFood((next_x, next_y), food, walls)
         if dist is not None:
             # make the distance a number less than one otherwise the update
             # will diverge wildly
             features["closest-food"] = float(dist) / boardSize
-        features.divideAll(10.0)
 
         # distance to nearest scared and non-scared ghosts
         curPos = state.getPacmanPosition()
+        nextPos = (next_x, next_y)
         scaredGhostDist = None
         scaredGhostIndex = None
         nonScaredGhostDist = None
@@ -161,24 +154,36 @@ class AdvancedFeatureExtractor(FeatureExtractor):
             if ghostIndex == 0:
                 continue
             ghostState = state.getGhostState(ghostIndex)
+            ghostPos = state.getGhostPosition(ghostIndex)
+            dist = util.manhattanDistance(nextPos, ghostPos)
+
             if ghostState.scaredTimer > 0:
-                ghostPos = state.getGhostPosition(ghostIndex)
-                dist = util.manhattanDistance(curPos, ghostPos)
                 if scaredGhostDist is None or dist < scaredGhostDist:
                     scaredGhostDist = dist
                     scaredGhostIndex = scaredGhostIndex
+                # if a ghost is right next to us and scared, eat it!
+                features["#-of-scared-1-step-away"] += nextPos in Actions.getLegalNeighbors(ghostPos, walls)
+
             else:
-                ghostPos = state.getGhostPosition(ghostIndex)
-                dist = util.manhattanDistance(curPos, ghostPos)
                 if nonScaredGhostDist is None or dist < nonScaredGhostDist:
                     nonScaredGhostDist = dist
                     nonScaredGhostIndex = nonScaredGhostIndex
+                # if a ghost is next to us, but not scared, run away!
+                features["#-of-ghosts-1-step-away"] += nextPos in Actions.getLegalNeighbors(ghostPos, walls)
+
+        # add the scared and non-scared ghost distance features
         if scaredGhostIndex:
             features['scared-dist'] = boardSize / float(scaredGhostDist)
         else:
             features['scared-dist'] = 0.0
-        if nonScaredGhostIndex:
-            features['non-scared-dist'] = float(nonScaredGhostDist) / boardSize
-        else:
-            features['non-scared-dist'] = 0.0
+        # if nonScaredGhostIndex:
+        #     features['non-scared-dist'] = float(nonScaredGhostDist) / boardSize
+        # else:
+        #     features['non-scared-dist'] = 0.0
+
+        # if there is no danger of ghosts then add the food feature
+        if features["#-of-ghosts-1-step-away"] != 0 and food[next_x][next_y]:
+            features["eats-food"] = 1.0
+
+        features.divideAll(10.0)
         return features
